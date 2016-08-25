@@ -7,7 +7,8 @@ alert, where we deliver messages to ~100K unique users very quickly.
 
 ## ansible
 
-[https://docs.ansible.com/ansible/intro_installation.html]
+[See the ansible documentation]
+(https://docs.ansible.com/ansible/intro_installation.html)
 
 ## EC2 credentials
 
@@ -22,7 +23,8 @@ aws_secret_access_key = KEY
 
 ## SSH keypair
 
-[https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html]
+[See the AWS EC2 documentation]
+(https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)
 
 ## Base machine image
 
@@ -34,16 +36,17 @@ custom configuration baked in.
 ## Address list
 
 In order to properly simulate the load pattern of an emergency alert,
-you should replace `ansible/files/userlist` with a list of approximately
-99K valid user addresses and 6K invalid addresses. For the greatest
-verisimilitude, this list can be generated from the logs of a recent
-emergency alert.
+you should replace [ansible/files/userlist](ansible/files/userlist) with
+a list of approximately 99K valid user addresses and 6K invalid addresses.
+For the greatest verisimilitude, this list can be generated from the logs
+of a recent emergency alert.
 
 # Setting up your environment
 
-Before you do this, you should review `ansible/group_vars/all.yml`, make
+Before you do this, you should review
+[ansible/group_vars/all.yml](ansible/group_vars/all.yml), make
 any necessary configuration changes, and ensure the correct region is set
-in `ec2.ini`.
+in [ec2.ini](ec2.ini).
 
 
 ```bash
