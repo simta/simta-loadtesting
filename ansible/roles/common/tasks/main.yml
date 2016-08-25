@@ -1,0 +1,69 @@
+---
+
+- name: Disable SELinux
+  selinux: state=disabled
+
+- name: Configure sshd
+  copy:
+    dest: /etc/ssh/sshd_config
+    src: sshd_config
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart sshd
+
+- name: Uninstall unwanted packages
+  yum: pkg={{ item }} state=absent
+  with_items:
+    - postfix
+
+- name: Configure EPEL
+  yum:
+    pkg: http://mirrors.kernel.org/fedora-epel/7/x86_64/e/epel-release-7-8.noarch.rpm
+    state: present
+
+- name: Upgrade all packages
+  yum: pkg=* state=latest
+  when: inventory_hostname == "127.0.0.1"
+
+- name: Configure systemd-journald
+  copy:
+    dest: /etc/systemd/journald.conf
+    src: journald.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart systemd-journald
+
+- name: Configure rsyslog
+  copy:
+     dest: /etc/rsyslog.conf
+     src: rsyslog.conf
+     owner: root
+     group: root
+     mode: 0644
+  notify: Restart rsyslog
+
+- name: Configure logrotate
+  copy:
+    dest: /etc/logrotate.conf
+    src: logrotate.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Configure logrotate for syslog files
+  copy:
+    dest: /etc/logrotate.d/syslog
+    src: logrotate.syslog
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Configure umcollab yum repo
+  copy:
+    dest: /etc/yum.repos.d/umcollab.repo
+    src: umcollab.repo
+    owner: root
+    group: root
+    mode: 0644

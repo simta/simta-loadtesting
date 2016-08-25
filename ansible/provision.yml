@@ -1,0 +1,111 @@
+---
+
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Create security group for mx-loadtest ELB
+      ec2_group:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ aws_vpc }}"
+        name: mx-loadtest-elb
+        description: allows SMTP from anywhere
+        rules:
+          - proto: tcp
+            from_port: 25
+            to_port: 25
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+
+    - name: Create security group for mx-loadtest
+      ec2_group:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ aws_vpc }}"
+        name: mx-loadtest
+        description: restricts SMTP to the ELB
+        rules:
+          - proto: tcp
+            from_port: 25
+            to_port: 25
+            group_name: mx-loadtest-elb
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+
+    - name: Gather VPC subnet facts
+      ec2_vpc_subnet_facts:
+        region: "{{ aws_region }}"
+        filters:
+          vpc-id: "{{ aws_vpc }}"
+      register: ec2_subnets
+
+    - name: Create mx-loadtest hosts
+      ec2:
+        group: [ mx-loadtest ]
+        key_name: "{{ aws_ssh_key }}"
+        instance_type: m4.large
+        region: "{{ aws_region }}"
+        vpc_subnet_id: "{{ item.id }}"
+        image: "{{ aws_ami }}"
+        instance_tags:
+          Class: mx_loadtest
+          az: "{{ item.availability_zone }}"
+        exact_count: 1
+        count_tag:
+          Class: mx_loadtest
+          az: "{{ item.availability_zone }}"
+        wait: true
+      with_items: "{{ ec2_subnets.subnets }}"
+
+    - name: Create loadtest client
+      ec2:
+        group: [ mx-loadtest ]
+        key_name: "{{ aws_ssh_key }}"
+        instance_type: m4.large
+        region: "{{ aws_region }}"
+        vpc_subnet_id: "{{ ec2_subnets.subnets.0.id }}"
+        image: "{{ aws_ami }}"
+        instance_tags:
+          Class: mx_loadtest_client
+        exact_count: 1
+        count_tag:
+          Class: mx_loadtest_client
+
+    - name: Create mx-loadtest ELB
+      ec2_elb_lb:
+        name: mx-loadtest
+        region: "{{ aws_region }}"
+        state: present
+        scheme: internal
+        idle_timeout: 3600
+        cross_az_load_balancing: yes
+        security_group_names: mx-loadtest-elb
+        subnets: "{{ ec2_subnets.subnets | map(attribute='id') | list }}"
+        listeners:
+          - protocol: tcp
+            load_balancer_port: 25
+            instance_port: 25
+            proxy_protocol: true
+        health_check:
+          ping_protocol: tcp
+          ping_port: 25
+          response_timeout: 10
+          interval: 30
+          unhealthy_threshold: 2
+          healthy_threshold: 5
+      register: result
+
+    - meta: refresh_inventory
+
+    - name: Add instances to mx-loadtest
+      ec2_elb:
+        ec2_elbs: mx-loadtest
+        region: "{{ aws_region }}"
+        instance_id: "{{ item }}"
+        state: present
+        wait: false
+      with_items: "{{ groups.tag_Class_mx_loadtest | map('extract', hostvars, 'ec2_id') | list }}"

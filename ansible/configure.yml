@@ -1,0 +1,12 @@
+---
+
+- hosts: tag_Class_mx_loadtest
+  roles:
+    - { role: common, tags: common }
+    - { role: unbound, tags: unbound }
+    - { role: simta, tags: simta }
+
+- hosts: tag_Class_mx_loadtest_client
+  roles:
+    - { role: common, tags: common }
+    - { role: loadtest-client, tags: loadtest-client }

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+testlen=${1:-10}
+threads=200
+perconn=50
+tmpdir=$(mktemp -d /var/tmp/loadtest.XXXXXXXX)
+
+echo "Saving output to $tmpdir"
+
+postal -t $threads -c $perconn -x $testlen -f /usr/share/senderlist {{ ec2_elbs.elbs.0.dns_name }} /usr/share/userlist 2>$tmpdir/stderr.1 | tee $tmpdir/stdout.1 &
+postal -t $threads -c $perconn -x $testlen -f /usr/share/senderlist {{ ec2_elbs.elbs.0.dns_name }} /usr/share/userlist 2>$tmpdir/stderr.2 | tee $tmpdir/stdout.2
+

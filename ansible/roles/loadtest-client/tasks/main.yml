@@ -1,0 +1,38 @@
+---
+
+- name: Copy postal RPM
+  copy:
+    dest: /var/tmp/postal-0.74-1.el7.x86_64.rpm
+    src: postal-0.74-1.el7.x86_64.rpm
+    mode: 0644
+
+- name: Install postal
+  yum:
+    pkg: /var/tmp/postal-0.74-1.el7.x86_64.rpm
+    state: present
+
+- name: Copy data files
+  copy:
+    src: "{{ item }}"
+    dest: /usr/share/{{ item }}
+    mode: 0644
+  with_items:
+    - senderlist
+    - userlist
+
+- name: Gather ELB information
+  become: false
+  local_action:
+    module: ec2_elb_facts
+    region: "{{ aws_region }}"
+    names: mx-loadtest
+  register: ec2_elbs
+
+- name: Install loadtest script
+  template:
+    dest: /usr/bin/run-loadtest
+    src: run-loadtest.j2
+    owner: root
+    group: root
+    mode: 0755
+

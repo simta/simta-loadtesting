@@ -1,0 +1,11 @@
+---
+
+aws_region: us-west-2
+aws_vpc: vpc-18bcc77c
+aws_ssh_key: 2015-10-16
+aws_ami: ami-775e4f16
+
+simta_ldap_binddn: "cn=simta,ou=mail agents,ou=Security,dc=umich,dc=edu"
+simta_ldap_password: password1
+simta_ldap_host: ldap-mail.itd.umich.edu
+

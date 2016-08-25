@@ -1,0 +1,3 @@
+#!/bin/dash
+
+filter_exit ${MESSAGE_ACCEPT}

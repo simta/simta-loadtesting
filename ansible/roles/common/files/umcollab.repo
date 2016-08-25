@@ -1,0 +1,6 @@
+[umcollab]
+name = UMCollab repository
+baseurl = http://yum.a.mail.umich.edu/redhat/7
+enabled = 1
+gpgcheck = 0
+metadata_expire = 0

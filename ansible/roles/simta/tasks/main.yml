@@ -1,0 +1,84 @@
+---
+
+- name: Install simta
+  yum: name=simta state=latest
+  notify: Restart simta
+
+- name: Install auxiliary packages
+  yum: name={{ item }} state=present
+  with_items:
+    - simta-mscan
+    - simta-admin
+
+- name: Create directories
+  file:
+    dest: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - /etc/mail
+    - /etc/mail/filters
+
+- name: Install filters
+  copy:
+    dest: /etc/mail/filters/{{ item }}
+    src: "filters/{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - 00_load
+    - 15_trust
+
+- name: Configure simta
+  template:
+    dest: /etc/simta.conf
+    src: simta.conf.j2
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart simta
+
+- name: Install /etc/mail/aliases
+  copy:
+    dest: /etc/mail/aliases
+    src: "{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_first_found:
+    - aliases-{{ simta_config }}
+    - aliases
+  notify: Rebuild aliases
+
+- name: Install the public suffix list
+  get_url:
+    dest: /etc/mail/public_suffix_list.dat
+    url: https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat
+    owner: root
+    group: root
+    mode: 0644
+    force: yes
+  notify: Restart simta
+
+- name: Create /etc/mail/ldap
+  file:
+    dest: /etc/mail/ldap
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Install LDAP config file for umich.edu
+  template:
+    dest: /etc/mail/ldap/umich.edu
+    src: ldap/umich.edu.j2
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart simta
+
+- name: Enable simta
+  service: name=simta enabled=yes

@@ -1,0 +1,26 @@
+---
+
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Remove mx-loadtest hosts
+      ec2:
+        region: "{{ aws_region }}"
+        instance_ids: "{{ item }}"
+        state: absent
+      with_items: "{{ groups.tag_Class_mx_loadtest | default({}) | map('extract', hostvars, 'ec2_id') | list }}"
+
+    - name: Remove loadtest clients
+      ec2:
+        region: "{{ aws_region }}"
+        instance_ids: "{{ item }}"
+        state: absent
+      with_items: "{{ groups.tag_Class_mx_loadtest_client | default({}) | map('extract', hostvars, 'ec2_id') | list }}"
+
+    - name: Remove mx-loadtest ELB
+      ec2_elb_lb:
+        name: mx-loadtest
+        region: "{{ aws_region }}"
+        state: absent

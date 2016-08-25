@@ -1,0 +1,40 @@
+# simta.conf for load simulation
+
+BITBUCKET   50
+
+SMTP_MODE   NORMAL
+
+IPV6        OFF
+PROXY       ON
+
+ALIAS_FILE  /etc/mail/aliases
+ALIAS_DB    /etc/mail/aliases.db
+
+RDNS_CHECK          CHILLAXED
+PUBLICSUFFIX_FILE   /etc/mail/public_suffix_list.dat
+
+RBL_TRUST   mx-trust.dnswl
+
+CONNECTION_LIMIT                1500
+
+MAX_MESSAGE_SIZE                    104857600
+MAX_Q_RUNNERS_RECEIVE               5
+AGGRESSIVE_RECEIPT                  25
+RECEIVE_ACCEPTED_MESSAGE_TIMER      5
+RECEIVE_GLOBAL_SESSION_TIMEOUT      3600
+RECEIVE_COMMAND_INACTIVITY_TIMEOUT  600
+RECEIVE_DATA_LINE_TIMEOUT           300
+
+CHECKSUM_ALGORITHM  sha1
+CONTENT_FILTER      /usr/sbin/simta-mscan
+
+SRS_SECRET               dead60ff
+SRS_DOMAIN               umich.edu
+SRS                      FOREIGN
+@umich.edu               RE LDAP    /etc/mail/ldap/umich.edu
+@umich.edu               RE SRS
+
+@devnull.mr.itd.umich.edu   R   ACCEPT
+@devnull.mail.umich.edu     R   ACCEPT
+@devnull.mr.itd.umich.edu   D   MAILER  /bin/true
+@devnull.mail.umich.edu     D   MAILER  /bin/true

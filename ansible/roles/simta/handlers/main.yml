@@ -1,0 +1,7 @@
+---
+
+- name: Restart simta
+  service: name=simta state=restarted
+
+- name: Rebuild aliases
+  command: /usr/bin/newaliases
